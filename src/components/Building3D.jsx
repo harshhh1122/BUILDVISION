@@ -142,10 +142,12 @@ export default function Building3D({
     buildingGroup.name = 'building-group';
 
     // Setbacks
-    const setbackSide = Math.max(3, plotWidth * 0.1) * sc;
-    const setbackBack = Math.max(4, plotLength * 0.1) * sc;
-    const houseWidth = (plotWidth - Math.max(3, plotWidth * 0.1) * 2) * sc;
-    const houseLength = (plotLength - Math.max(5, plotLength * 0.12) - Math.max(4, plotLength * 0.1)) * sc;
+    const setbackSideFeet = Math.max(3, plotWidth * 0.1);
+    const setbackBackFeet = Math.max(4, plotLength * 0.1);
+    const setbackSide = setbackSideFeet * sc;
+    const setbackBack = setbackBackFeet * sc;
+    const houseWidth = (plotWidth - setbackSideFeet * 2) * sc;
+    const houseLength = (plotLength - Math.max(5, plotLength * 0.12) - setbackBackFeet) * sc;
 
     const ox = -w/2 + setbackSide + houseWidth/2;
     const oz = -l/2 + setbackBack + houseLength/2;
@@ -154,6 +156,176 @@ export default function Building3D({
     const addFurniture3D = (targetGroup, type, px, py, pz, rotation = 0, fW = 1.6, fL = 1.6, fH = 0.5) => {
       // Furniture rendering disabled by user request
       return;
+    };
+
+    // Segmented Wall Builder (Creates door and window openings in walls)
+    const buildWallWithOpenings = (w, floorGroup, f, hOffset) => {
+      const x1 = w.x1;
+      const y1 = w.y1;
+      const x2 = w.x2;
+      const y2 = w.y2;
+      
+      const isHorizontal = Math.abs(x2 - x1) > Math.abs(y2 - y1);
+      
+      const wallMinX = Math.min(x1, x2);
+      const wallMaxX = Math.max(x1, x2);
+      const wallMinY = Math.min(y1, y2);
+      const wallMaxY = Math.max(y1, y2);
+      
+      const floorDoors = layoutData.doors?.filter(d => (d.floor === undefined || d.floor == f)) || [];
+      const floorWindows = layoutData.windows?.filter(win => (win.floor === undefined || win.floor == f)) || [];
+      
+      const openings = [];
+      const threshold = 1.0; 
+      
+      if (isHorizontal) {
+        const wallY = y1;
+        
+        floorDoors.forEach(d => {
+          if (Math.abs(d.y - wallY) < threshold && d.x >= wallMinX && d.x <= wallMaxX) {
+            const size = d.size || 3.0;
+            openings.push({
+              start: d.x - size / 2,
+              end: d.x + size / 2,
+              type: 'door',
+              doorHeight: floorHeight * 0.75
+            });
+          }
+        });
+        
+        floorWindows.forEach(win => {
+          if (Math.abs(win.y - wallY) < threshold && win.x >= wallMinX && win.x <= wallMaxX) {
+            const size = win.size || 4.0;
+            openings.push({
+              start: win.x - size / 2,
+              end: win.x + size / 2,
+              type: 'window',
+              sillHeight: floorHeight * 0.3,
+              headerHeight: floorHeight * 0.75
+            });
+          }
+        });
+        
+        openings.sort((a, b) => a.start - b.start);
+        
+        let currentX = wallMinX;
+        openings.forEach(op => {
+          if (op.start > currentX) {
+            const start3D = get3DX(currentX - setbackSideFeet);
+            const end3D = get3DX(op.start - setbackSideFeet);
+            const segLength = Math.abs(end3D - start3D);
+            const cx = (start3D + end3D) / 2;
+            const cz = get3DZ(wallY - setbackBackFeet);
+            
+            const segWall = createBox(segLength, floorHeight, wallThick, partitionMat, cx, hOffset + floorHeight / 2, cz);
+            floorGroup.add(segWall);
+          }
+          
+          const opStart3D = get3DX(op.start - setbackSideFeet);
+          const opEnd3D = get3DX(op.end - setbackSideFeet);
+          const opLength = Math.abs(opEnd3D - opStart3D);
+          const opCx = (opStart3D + opEnd3D) / 2;
+          const opCz = get3DZ(wallY - setbackBackFeet);
+          
+          if (op.type === 'door') {
+            const headerH = floorHeight - op.doorHeight;
+            const headerWall = createBox(opLength, headerH, wallThick, partitionMat, opCx, hOffset + op.doorHeight + headerH / 2, opCz);
+            floorGroup.add(headerWall);
+          } else if (op.type === 'window') {
+            const sillWall = createBox(opLength, op.sillHeight, wallThick, partitionMat, opCx, hOffset + op.sillHeight / 2, opCz);
+            const headerH = floorHeight - op.headerHeight;
+            const headerWall = createBox(opLength, headerH, wallThick, partitionMat, opCx, hOffset + op.headerHeight + headerH / 2, opCz);
+            floorGroup.add(sillWall, headerWall);
+          }
+          
+          currentX = op.end;
+        });
+        
+        if (currentX < wallMaxX) {
+          const start3D = get3DX(currentX - setbackSideFeet);
+          const end3D = get3DX(wallMaxX - setbackSideFeet);
+          const segLength = Math.abs(end3D - start3D);
+          const cx = (start3D + end3D) / 2;
+          const cz = get3DZ(wallY - setbackBackFeet);
+          
+          const segWall = createBox(segLength, floorHeight, wallThick, partitionMat, cx, hOffset + floorHeight / 2, cz);
+          floorGroup.add(segWall);
+        }
+        
+      } else {
+        const wallX = x1;
+        
+        floorDoors.forEach(d => {
+          if (Math.abs(d.x - wallX) < threshold && d.y >= wallMinY && d.y <= wallMaxY) {
+            const size = d.size || 3.0;
+            openings.push({
+              start: d.y - size / 2,
+              end: d.y + size / 2,
+              type: 'door',
+              doorHeight: floorHeight * 0.75
+            });
+          }
+        });
+        
+        floorWindows.forEach(win => {
+          if (Math.abs(win.x - wallX) < threshold && win.y >= wallMinY && win.y <= wallMaxY) {
+            const size = win.size || 4.0;
+            openings.push({
+              start: win.y - size / 2,
+              end: win.y + size / 2,
+              type: 'window',
+              sillHeight: floorHeight * 0.3,
+              headerHeight: floorHeight * 0.75
+            });
+          }
+        });
+        
+        openings.sort((a, b) => a.start - b.start);
+        
+        let currentY = wallMinY;
+        openings.forEach(op => {
+          if (op.start > currentY) {
+            const start3D = get3DZ(currentY - setbackBackFeet);
+            const end3D = get3DZ(op.start - setbackBackFeet);
+            const segLength = Math.abs(end3D - start3D);
+            const cx = get3DX(wallX - setbackSideFeet);
+            const cz = (start3D + end3D) / 2;
+            
+            const segWall = createBox(wallThick, floorHeight, segLength, partitionMat, cx, hOffset + floorHeight / 2, cz);
+            floorGroup.add(segWall);
+          }
+          
+          const opStart3D = get3DZ(op.start - setbackBackFeet);
+          const opEnd3D = get3DZ(op.end - setbackBackFeet);
+          const opLength = Math.abs(opEnd3D - opStart3D);
+          const opCx = get3DX(wallX - setbackSideFeet);
+          const opCz = (opStart3D + opEnd3D) / 2;
+          
+          if (op.type === 'door') {
+            const headerH = floorHeight - op.doorHeight;
+            const headerWall = createBox(wallThick, headerH, opLength, partitionMat, opCx, hOffset + op.doorHeight + headerH / 2, opCz);
+            floorGroup.add(headerWall);
+          } else if (op.type === 'window') {
+            const sillWall = createBox(wallThick, op.sillHeight, opLength, partitionMat, opCx, hOffset + op.sillHeight / 2, opCz);
+            const headerH = floorHeight - op.headerHeight;
+            const headerWall = createBox(wallThick, headerH, opLength, partitionMat, opCx, hOffset + op.headerHeight + headerH / 2, opCz);
+            floorGroup.add(sillWall, headerWall);
+          }
+          
+          currentY = op.end;
+        });
+        
+        if (currentY < wallMaxY) {
+          const start3D = get3DZ(currentY - setbackBackFeet);
+          const end3D = get3DZ(wallMaxY - setbackBackFeet);
+          const segLength = Math.abs(end3D - start3D);
+          const cx = get3DX(wallX - setbackSideFeet);
+          const cz = (start3D + end3D) / 2;
+          
+          const segWall = createBox(wallThick, floorHeight, segLength, partitionMat, cx, hOffset + floorHeight / 2, cz);
+          floorGroup.add(segWall);
+        }
+      }
     };
 
     for (let f = 0; f < floors; f++) {
@@ -247,24 +419,10 @@ export default function Building3D({
           }
         });
 
-        // Walls
+        // Walls (Built dynamically with window/door opening spaces cut out)
         layoutData.walls?.forEach(w => {
           if (w.floor === undefined || w.floor == f) {
-            const x1 = get3DX(w.x1 - setbackSideFeet);
-            const z1 = get3DZ(w.y1 - setbackBackFeet);
-            const x2 = get3DX(w.x2 - setbackSideFeet);
-            const z2 = get3DZ(w.y2 - setbackBackFeet);
-            
-            const dx = Math.abs(x2 - x1);
-            const dz = Math.abs(z2 - z1);
-            
-            const wWidth = dx === 0 ? wallThick : dx;
-            const wLength = dz === 0 ? wallThick : dz;
-            const cx = (x1 + x2) / 2;
-            const cz = (z1 + z2) / 2;
-            
-            const wallBox = createBox(wWidth, floorHeight, wLength, partitionMat, cx, hOffset + floorHeight/2, cz);
-            floorGroup.add(wallBox);
+            buildWallWithOpenings(w, floorGroup, f, hOffset);
           }
         });
 

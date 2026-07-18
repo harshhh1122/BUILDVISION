@@ -367,13 +367,54 @@ app.post('/api/ai/generate', async (req, res) => {
       return res.status(400).json({ error: 'Plot dimensions are required' });
     }
 
-    const sysInstruction = `You are an expert structural engineer and residential architect.
-Generate 3 distinct, architecturally sound residential floorplan layout variants based on the user's requirements (e.g. Option 1: Open Concept, Option 2: Compact/Space-Saving, Option 3: Traditional/Custom).
-Ensure you fit the rooms, walls, doors, windows, and furniture coordinates within the specified plot boundaries (width and length in feet) and adhere to standard residential setback boundaries (minimum front setback: 5ft, back setback: 4ft, side setbacks: 3ft).
-The coordinates (x, y) start from (0,0) in the top-left of the plot, and go up to (width, length).
-All room walls should partition the rooms logically.
-Place furniture logically inside the rooms (e.g. beds in bedrooms, sofas/dining tables in living/dining areas, toilets/sinks in bathrooms, counters/burners in kitchen).
-You must output a single, raw JSON object matching this schema:
+    const sysInstruction = `You are a highly experienced residential architect and structural engineer who designs realistic, buildable, and code-compliant floor plans.
+Generate exactly 3 distinct, practical residential floorplan layout variants based on the user's input:
+- Option A: Modern Open Concept
+- Option B: Space-Saving / Highly Functional
+- Option C: Traditional / Vastu Compliant
+
+You MUST adhere to these strict architectural rules to ensure the blueprints are feasible for real-life construction:
+
+1. SETBACKS & BUILD AREA BOUNDARIES:
+- Plot Dimensions are given as width and length in feet.
+- Standard setbacks: Front Setback = 5 ft, Back Setback = 4 ft, Side Setbacks = 3 ft (left and right).
+- All rooms, walls, doors, and windows MUST sit strictly inside the buildable envelope: from x = 3 to x = (width - 3), and y = 4 to y = (length - 5). Do not draw walls or rooms outside these boundaries!
+
+2. REASONABLE ROOM SIZES & LABELS:
+- All room dimensions (w, h) must represent real-world feasibility:
+  * Living Room: 12x15 ft to 18x24 ft.
+  * Master Bedroom: 12x14 ft to 14x16 ft.
+  * Secondary Bedrooms: 10x10 ft to 12x12 ft.
+  * Kitchen: 8x10 ft to 10x12 ft.
+  * Bathrooms: 5x8 ft to 7x9 ft.
+  * Foyer / Passages: Width must be 3 to 4 ft.
+  * Balconies: Width 3 to 5 ft.
+- Every room must be labeled accurately (e.g., "Living Room", "Master Bedroom", "Kitchen", "Dining Room", "Common Bathroom", "Master Bathroom").
+- Avoid creating tiny, unlivable rooms. Bounding boxes must not overlap each other!
+
+3. COHERENT FLOOR-BY-FLOOR UTILITY RULES:
+- The base floor is floor: 0 (Ground Floor). Upper floors are floor: 1 (First Floor), floor: 2 (Second Floor).
+- Floor 0 (Ground Floor) MUST contain the main entryway, a Living Room, Dining Room, Kitchen, and at least one Bathroom. If the layout requires bedrooms, put at least one bedroom on Floor 0.
+- Floor 1 and Floor 2 (Upper Floors) are for private rooms: Bedrooms, family lounge, study, attached bathrooms, and balconies.
+- CRITICAL: Never place a Kitchen on Floor 1 or 2. Kitchen MUST only be on Floor 0.
+- If the plan is single-story, fit everything on Floor 0.
+
+4. DOOR ACCESS & ACCESSIBILITY (NO ENCLOSED ROOMS):
+- Every room box must have at least one door connecting it to a common area (hallway, lobby, or living room) or to an adjacent room. Do not seal rooms completely with walls!
+- Place door coordinates (x, y) exactly on the partition wall separating the room from the access area, with the door pointing inside.
+- Master Bathrooms must have a door opening directly into the Master Bedroom. Common Bathrooms must have doors opening to hallways or living areas.
+
+5. WALLS AND ALIGNMENTS:
+- Draw walls as clean, straight lines (horizontal or vertical).
+- External walls must form a solid outer box tracing the buildable envelope boundaries.
+- Internal partition walls must trace the room boxes exactly. Room borders must align perfectly with wall lines.
+- Do not overlay duplicate walls or create double wall segments to avoid visual rendering noise.
+
+6. WINDOW PLACEMENT:
+- Windows must be placed ONLY on exterior walls (facing outside the buildable envelope, e.g., the front yard, back yard, or side yards) to allow ventilation and light. Never place windows on internal partition walls!
+
+7. SCHEMA CONTROL:
+Output a single, raw JSON object matching this schema. No markdown formatting:
 {
   "options": [
     {
@@ -398,9 +439,6 @@ You must output a single, raw JSON object matching this schema:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
-        ],
-        "furniture": [
-          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     },
@@ -426,9 +464,6 @@ You must output a single, raw JSON object matching this schema:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
-        ],
-        "furniture": [
-          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     },
@@ -454,9 +489,6 @@ You must output a single, raw JSON object matching this schema:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
-        ],
-        "furniture": [
-          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     }

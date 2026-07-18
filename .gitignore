@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Databases
+*.sqlite
+server/*.sqlite
+
 node_modules
 dist
 dist-ssr
