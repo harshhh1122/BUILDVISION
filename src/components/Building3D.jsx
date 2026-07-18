@@ -379,26 +379,28 @@ export default function Building3D({
         floorGroup.add(slab);
       }
 
-      // Exterior walls
-      const wallL = createBox(wallThick, floorHeight, houseLength, wMat, ox - houseWidth/2 + wallThick/2, hOffset + floorHeight/2, oz);
-      const wallR = createBox(wallThick, floorHeight, houseLength, wMat, ox + houseWidth/2 - wallThick/2, hOffset + floorHeight/2, oz);
-      const wallB = createBox(houseWidth, floorHeight, wallThick, wMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + wallThick/2);
-      
-      const wallF_L = createBox(houseWidth * 0.35, floorHeight, wallThick, wMat, ox - houseWidth * 0.325, hOffset + floorHeight/2, oz + houseLength/2 - wallThick/2);
-      const wallF_R = createBox(houseWidth * 0.35, floorHeight, wallThick, wMat, ox + houseWidth * 0.325, hOffset + floorHeight/2, oz + houseLength/2 - wallThick/2);
-      const wallF_T = createBox(houseWidth * 0.3, floorHeight * 0.3, wallThick, wMat, ox, hOffset + floorHeight * 0.85, oz + houseLength/2 - wallThick/2);
-      
-      floorGroup.add(wallL, wallR, wallB, wallF_L, wallF_R, wallF_T);
+      // Exterior walls (Only render fallback defaults if layoutData is not present)
+      if (!layoutData) {
+        const wallL = createBox(wallThick, floorHeight, houseLength, wMat, ox - houseWidth/2 + wallThick/2, hOffset + floorHeight/2, oz);
+        const wallR = createBox(wallThick, floorHeight, houseLength, wMat, ox + houseWidth/2 - wallThick/2, hOffset + floorHeight/2, oz);
+        const wallB = createBox(houseWidth, floorHeight, wallThick, wMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + wallThick/2);
+        
+        const wallF_L = createBox(houseWidth * 0.35, floorHeight, wallThick, wMat, ox - houseWidth * 0.325, hOffset + floorHeight/2, oz + houseLength/2 - wallThick/2);
+        const wallF_R = createBox(houseWidth * 0.35, floorHeight, wallThick, wMat, ox + houseWidth * 0.325, hOffset + floorHeight/2, oz + houseLength/2 - wallThick/2);
+        const wallF_T = createBox(houseWidth * 0.3, floorHeight * 0.3, wallThick, wMat, ox, hOffset + floorHeight * 0.85, oz + houseLength/2 - wallThick/2);
+        
+        floorGroup.add(wallL, wallR, wallB, wallF_L, wallF_R, wallF_T);
 
-      // Main door
-      if (f === 0 && isCurrentFloor) {
-        const doorPivot = new THREE.Group();
-        doorPivot.position.set(ox - houseWidth * 0.15, hOffset, oz + houseLength/2 - wallThick);
-        const doorPanel = createBox(1.5, floorHeight * 0.7, 0.1, doorMat, 0.75, floorHeight * 0.35, 0);
-        doorPanel.userData = { type: 'door', open: false };
-        doorPivot.add(doorPanel);
-        floorGroup.add(doorPivot);
-        doorMeshes.current.push(doorPanel);
+        // Main door
+        if (f === 0 && isCurrentFloor) {
+          const doorPivot = new THREE.Group();
+          doorPivot.position.set(ox - houseWidth * 0.15, hOffset, oz + houseLength/2 - wallThick);
+          const doorPanel = createBox(1.5, floorHeight * 0.7, 0.1, doorMat, 0.75, floorHeight * 0.35, 0);
+          doorPanel.userData = { type: 'door', open: false };
+          doorPivot.add(doorPanel);
+          floorGroup.add(doorPivot);
+          doorMeshes.current.push(doorPanel);
+        }
       }
 
       // Partitions & Furniture placement
