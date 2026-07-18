@@ -85,7 +85,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState('3d'); // 2d, 3d, ar
   const [showRoof, setShowRoof] = useState(true);
   const [explodedView, setExplodedView] = useState(false);
-  const [currentFloor, setCurrentFloor] = useState(0); // Ground (0), First (1), etc.
+  const [currentFloor, setCurrentFloor] = useState(-1); // -1 for All Floors, 0 for Ground, 1 for First, etc.
 
   // 1. Authentication Check & Data Initialization
   useEffect(() => {
@@ -736,19 +736,36 @@ function Dashboard() {
                     {/* Floor Level Selector */}
                     {floors > 1 && (
                       <div className="flex items-center gap-1 bg-slate-950 border border-white/5 rounded-lg p-0.5 font-mono">
-                        {Array.from({ length: floors }).map((_, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setCurrentFloor(idx)}
-                            className={`px-2 py-1 rounded text-[10px] font-bold cursor-pointer ${
-                              currentFloor === idx 
-                                ? 'bg-blue-600 text-white' 
-                                : 'text-gray-400 hover:text-slate-200'
-                            }`}
-                          >
-                            L{idx}
-                          </button>
-                        ))}
+                        <button
+                          onClick={() => setCurrentFloor(-1)}
+                          className={`px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition ${
+                            currentFloor === -1 
+                              ? 'bg-blue-600 text-white shadow' 
+                              : 'text-gray-400 hover:text-slate-200'
+                          }`}
+                        >
+                          All Floors
+                        </button>
+                        {Array.from({ length: floors }).map((_, idx) => {
+                          let label = 'Ground';
+                          if (idx === 1) label = '1st Floor';
+                          if (idx === 2) label = '2nd Floor';
+                          if (idx > 2) label = `${idx}th Floor`;
+                          
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => setCurrentFloor(idx)}
+                              className={`px-2 py-1 rounded text-[10px] font-bold cursor-pointer transition ${
+                                currentFloor === idx 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'text-gray-400 hover:text-slate-200'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          );
+                        })}
                       </div>
                     )}
 

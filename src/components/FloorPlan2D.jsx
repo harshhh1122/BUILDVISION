@@ -15,6 +15,8 @@ export default function FloorPlan2D({
   const svgWidth = 500;
   const svgHeight = 400;
   const padding = 40;
+  
+  const targetFloor = currentFloor === -1 ? 0 : currentFloor;
 
   // Calculate scaling factors to fit the plot inside the SVG
   const scaleX = (svgWidth - padding * 2) / plotWidth;
@@ -79,34 +81,34 @@ export default function FloorPlan2D({
 
   if (layoutData) {
     layoutData.rooms?.forEach(r => {
-      if (r.floor == currentFloor) {
+      if (r.floor == targetFloor) {
         addRoom(r.label, r.x - setbackSide, r.y - setbackBack, r.w, r.h, r.type);
       }
     });
     layoutData.walls?.forEach(w => {
-      if (w.floor === undefined || w.floor == currentFloor) {
+      if (w.floor === undefined || w.floor == targetFloor) {
         addWall(w.x1 - setbackSide, w.y1 - setbackBack, w.x2 - setbackSide, w.y2 - setbackBack);
       }
     });
     layoutData.doors?.forEach(d => {
-      if (d.floor === undefined || d.floor == currentFloor) {
+      if (d.floor === undefined || d.floor == targetFloor) {
         addDoor(d.x - setbackSide, d.y - setbackBack, d.angle, d.size);
       }
     });
     layoutData.windows?.forEach(w => {
-      if (w.floor === undefined || w.floor == currentFloor) {
+      if (w.floor === undefined || w.floor == targetFloor) {
         addWindow(w.x - setbackSide, w.y - setbackBack, w.size, w.isVertical);
       }
     });
     layoutData.furniture?.forEach(f => {
-      if (f.floor === undefined || f.floor == currentFloor) {
+      if (f.floor === undefined || f.floor == targetFloor) {
         addFurniture(f.type, f.x - setbackSide, f.y - setbackBack, f.w, f.h, f.rotation);
       }
     });
   } else {
     if (layoutOption === 'A') {
       // LAYOUT A: Modern Open Concept
-      if (currentFloor === 0) {
+      if (targetFloor === 0) {
         const splitY = houseHeight * 0.45;
         
         // Master Suite
@@ -186,7 +188,7 @@ export default function FloorPlan2D({
 
     } else if (layoutOption === 'B') {
       // LAYOUT B: Smart Space-Saver
-      if (currentFloor === 0) {
+      if (targetFloor === 0) {
         const splitX = houseWidth * 0.5;
         const splitY = houseHeight * 0.45;
 
@@ -247,7 +249,7 @@ export default function FloorPlan2D({
       const splitX = houseWidth * 0.45;
       const splitY = houseHeight * 0.45;
 
-      if (currentFloor === 0) {
+      if (targetFloor === 0) {
         const courtW = houseWidth * 0.22;
         const courtH = houseHeight * 0.18;
         const courtX = (houseWidth - courtW) / 2;
@@ -332,7 +334,7 @@ export default function FloorPlan2D({
           Layout Alternative: {layoutOption} (Scale: 1px = ~{(1/scale).toFixed(2)}ft)
         </span>
         <span className="text-sm font-semibold text-gray-300">
-          {currentFloor === 0 ? 'Ground Floor Blueprint' : `Floor ${currentFloor + 1} Blueprint`}
+          {targetFloor === 0 ? 'Ground Floor Blueprint' : `Floor ${targetFloor + 1} Blueprint`}
         </span>
       </div>
 

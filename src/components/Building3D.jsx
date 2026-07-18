@@ -329,15 +329,22 @@ export default function Building3D({
     };
 
     for (let f = 0; f < floors; f++) {
+      // If we are isolating a floor, skip building other floors in 3D
+      if (currentFloor !== -1 && currentFloor !== undefined && f !== currentFloor) {
+        continue;
+      }
+
       const floorGroup = new THREE.Group();
       floorGroup.name = `Floor-${f}`;
 
       let hOffset = f * floorHeight;
-      if (explodedView) {
+      if (currentFloor !== -1 && currentFloor !== undefined) {
+        hOffset = 0; // Render the isolated floor at ground level
+      } else if (explodedView) {
         hOffset = f * (floorHeight + 4.0);
       }
 
-      const isCurrentFloor = f === currentFloor;
+      const isCurrentFloor = (currentFloor === -1 || f === currentFloor);
       const fMat = isCurrentFloor ? activeFloorMat : inactiveFloorMat;
       const wMat = isCurrentFloor ? wallMat : new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9, transparent: true, opacity: 0.2 });
 
@@ -550,22 +557,34 @@ export default function Building3D({
 
     // Roof
     if (showRoof) {
-      const roofOffset = floors * floorHeight + (explodedView ? (floors - 1) * 4.0 : 0);
-      if (style.toLowerCase().includes('traditional') || style.toLowerCase().includes('villa')) {
-        const roofGeom = new THREE.ConeGeometry(houseWidth * 0.7, 2, 4);
-        roofGeom.rotateY(Math.PI / 4);
-        const pitchedRoof = new THREE.Mesh(roofGeom, roofMat);
-        pitchedRoof.position.set(ox, roofOffset + 1.0, oz);
-        pitchedRoof.scale.set(1, 1, houseLength / (houseWidth * 0.7));
-        buildingGroup.add(pitchedRoof);
-      } else {
-        const roofSlab = createBox(houseWidth, 0.15, houseLength, roofMat, ox, roofOffset, oz);
-        buildingGroup.add(roofSlab);
+      let roofOffset = floors * floorHeight + (explodedView ? (floors - 1) * 4.0 : 0);
+      if (currentFloor !== -1 && currentFloor !== undefined) {
+        // If isolating a floor, only show roof on top of the top floor
+        if (currentFloor === floors - 1) {
+          roofOffset = floorHeight;
+        } else {
+          roofOffset = -999;
+        }
+      }
+      
+      if (roofOffset > -100) {
+        if (style.toLowerCase().includes('traditional') || style.toLowerCase().includes('villa')) {
+          const roofGeom = new THREE.ConeGeometry(houseWidth * 0.7, 2, 4);
+          roofGeom.rotateY(Math.PI / 4);
+          const pitchedRoof = new THREE.Mesh(roofGeom, roofMat);
+          pitchedRoof.position.set(ox, roofOffset + 1.0, oz);
+          pitchedRoof.scale.set(1, 1, houseLength / (houseWidth * 0.7));
+          buildingGroup.add(pitchedRoof);
+        } else {
+          const roofSlab = createBox(houseWidth, 0.15, houseLength, roofMat, ox, roofOffset, oz);
+          buildingGroup.add(roofSlab);
+        }
       }
     }
 
     scene.add(buildingGroup);
-    controls.target.set(ox, (floors * floorHeight) / 2, oz);
+    const targetHeight = (currentFloor !== -1 && currentFloor !== undefined) ? (floorHeight / 2) : ((floors * floorHeight) / 2);
+    controls.target.set(ox, targetHeight, oz);
     controls.update();
 
     const raycaster = new THREE.Raycaster();
