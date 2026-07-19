@@ -442,10 +442,92 @@ export default function FloorPlan2D({
                 </text>
               </g>
             );
+          })}          {/* Furniture Drawings HUD Layer */}
+          {furniture.map((f, idx) => {
+            const fx = f.x * scale + hx;
+            const fy = f.y * scale + hy;
+
+            if (f.type === 'bed') {
+              const bw = f.w * scale;
+              const bh = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-bw/2}, ${-bh/2})`} className="stroke-indigo-400/35 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={bw} height={bh} rx="2" className="fill-indigo-500/5" />
+                  <rect x="2" y="2" width={bw - 4} height={bh - 4} rx="1" />
+                  <rect x="5" y="4" width={(bw - 14)/2} height="8" rx="0.5" />
+                  <rect x={bw/2 + 2} y="4" width={(bw - 14)/2} height="8" rx="0.5" />
+                  <line x1="2" y1={bh * 0.6} x2={bw - 2} y2={bh * 0.6} />
+                </g>
+              );
+            }
+
+            if (f.type === 'sofa') {
+              const sw = f.w * scale;
+              const sh = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-sw/2}, ${-sh/2})`} className="stroke-zinc-400/40 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={sw} height={sh} rx="3" className="fill-zinc-500/5" />
+                  <rect x="2" y="2" width={sw - 4} height={4} />
+                  <rect x="2" y="2" width={4} height={sh - 4} />
+                  <rect x={sw - 6} y="2" width={4} height={sh - 4} />
+                </g>
+              );
+            }
+
+            if (f.type === 'dining') {
+              const dw = f.w * scale;
+              const dh = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-dw/2}, ${-dh/2})`} className="stroke-zinc-500/35 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={dw} height={dh} rx="2" className="fill-zinc-400/5" />
+                  {/* Chairs */}
+                  <rect x={dw * 0.1} y="-4" width={dw * 0.3} height="3" rx="0.5" />
+                  <rect x={dw * 0.6} y="-4" width={dw * 0.3} height="3" rx="0.5" />
+                  <rect x={dw * 0.1} y={dh + 1} width={dw * 0.3} height="3" rx="0.5" />
+                  <rect x={dw * 0.6} y={dh + 1} width={dw * 0.3} height="3" rx="0.5" />
+                </g>
+              );
+            }
+
+            if (f.type === 'toilet') {
+              const tw = f.w * scale;
+              const th = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-tw/2}, ${-th/2})`} className="stroke-emerald-500/35 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={tw} height={th * 0.35} rx="1" />
+                  <ellipse cx={tw/2} cy={th * 0.65} rx={tw * 0.4} ry={th * 0.3} />
+                </g>
+              );
+            }
+
+            if (f.type === 'sink') {
+              const sw = f.w * scale;
+              const sh = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-sw/2}, ${-sh/2})`} className="stroke-emerald-450/35 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={sw} height={sh} rx="1.5" />
+                  <ellipse cx={sw/2} cy={sh/2} rx={sw * 0.35} ry={sh * 0.3} />
+                </g>
+              );
+            }
+
+            if (f.type === 'kitchen') {
+              const kw = f.w * scale;
+              const kh = f.h * scale;
+              return (
+                <g key={`furn-${idx}`} transform={`translate(${fx}, ${fy}) rotate(${f.rotation}) translate(${-kw/2}, ${-kh/2})`} className="stroke-rose-500/30 fill-none" strokeWidth="0.8">
+                  <rect x="0" y="0" width={kw} height={kh} />
+                  {/* Sink basin */}
+                  <rect x="3" y="3" width={kw * 0.28} height={kh - 6} rx="1" />
+                  {/* Gas stove circles */}
+                  <circle cx={kw * 0.65} cy={kh * 0.35} r="2.5" />
+                  <circle cx={kw * 0.65} cy={kh * 0.65} r="2.5" />
+                </g>
+              );
+            }
+
+            return null;
           })}
-
-
-
           {/* Internal & External Walls (Thick Lines) */}
           <g stroke={colors.walls} strokeWidth="3" strokeLinecap="square">
             <line x1={hx} y1={hy} x2={hx + hw} y2={hy} />

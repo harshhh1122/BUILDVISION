@@ -154,8 +154,67 @@ export default function Building3D({
 
     // Procedural 3D Furniture builder helper
     const addFurniture3D = (targetGroup, type, px, py, pz, rotation = 0, fW = 1.6, fL = 1.6, fH = 0.5) => {
-      // Furniture rendering disabled by user request
-      return;
+      const furnitureGroup = new THREE.Group();
+      furnitureGroup.position.set(px, py, pz);
+      furnitureGroup.rotation.y = rotation;
+
+      if (type === 'bed') {
+        // Bed base
+        const frame = createBox(fW, 0.15, fL, bedWoodMat, 0, 0.075, 0);
+        // Headboard
+        const headboard = createBox(fW, 0.8, 0.1, bedWoodMat, 0, 0.4, -fL/2 + 0.05);
+        // Mattress
+        const mattress = createBox(fW - 0.1, 0.35, fL - 0.2, fabricMat, 0, 0.325, 0.08);
+        // Pillows
+        const pillow1 = createBox(fW*0.35, 0.08, 0.3, cushionMat, -fW*0.22, 0.52, -fL/2 + 0.3);
+        const pillow2 = createBox(fW*0.35, 0.08, 0.3, cushionMat, fW*0.22, 0.52, -fL/2 + 0.3);
+        furnitureGroup.add(frame, headboard, mattress, pillow1, pillow2);
+      } else if (type === 'sofa') {
+        // L-shaped Sectional sofa
+        const baseL = createBox(fW, 0.2, fL * 0.35, fabricMat, 0, 0.1, 0);
+        const backL = createBox(fW, 0.6, 0.15, fabricMat, 0, 0.4, -fL * 0.35 / 2);
+        
+        // Sofa projection L-corner extension
+        const baseCorner = createBox(fW * 0.35, 0.2, fL * 0.65, fabricMat, -fW/2 + fW*0.175, 0.1, fL * 0.325);
+        
+        furnitureGroup.add(baseL, backL, baseCorner);
+      } else if (type === 'dining') {
+        // Tabletop
+        const top = createBox(fW, 0.08, fL, bedWoodMat, 0, 0.7, 0);
+        // Legs
+        const leg1 = createBox(0.1, 0.7, 0.1, bedWoodMat, -fW/2 + 0.08, 0.35, -fL/2 + 0.08);
+        const leg2 = createBox(0.1, 0.7, 0.1, bedWoodMat, fW/2 - 0.08, 0.35, -fL/2 + 0.08);
+        const leg3 = createBox(0.1, 0.7, 0.1, bedWoodMat, -fW/2 + 0.08, 0.35, fL/2 - 0.08);
+        const leg4 = createBox(0.1, 0.7, 0.1, bedWoodMat, fW/2 - 0.08, 0.35, fL/2 - 0.08);
+        
+        // Simple chairs
+        const chair1 = createBox(0.4, 0.45, 0.4, fabricMat, 0, 0.225, -fL/2 - 0.3);
+        const chair2 = createBox(0.4, 0.45, 0.4, fabricMat, 0, 0.225, fL/2 + 0.3);
+        
+        furnitureGroup.add(top, leg1, leg2, leg3, leg4, chair1, chair2);
+      } else if (type === 'toilet') {
+        // Tank
+        const tank = createBox(0.4, 0.55, 0.2, partitionMat, 0, 0.275, -0.2);
+        // Bowl
+        const bowl = createBox(0.35, 0.35, 0.45, partitionMat, 0, 0.175, 0.1);
+        furnitureGroup.add(tank, bowl);
+      } else if (type === 'sink') {
+        // Cabinet stand
+        const cab = createBox(0.6, 0.8, 0.5, bedWoodMat, 0, 0.4, 0);
+        // Basin
+        const basin = createBox(0.55, 0.05, 0.45, partitionMat, 0, 0.825, 0);
+        furnitureGroup.add(cab, basin);
+      } else if (type === 'kitchen') {
+        // Main cooking counter
+        const counter = createBox(fW, 0.85, 0.6, activeFloorMat, 0, 0.425, 0);
+        // Metallic basin
+        const sink = createBox(fW*0.3, 0.02, 0.4, partitionMat, -fW*0.25, 0.86, 0);
+        // Burners
+        const burner1 = createBox(0.25, 0.02, 0.25, fabricMat, fW*0.25, 0.86, 0);
+        furnitureGroup.add(counter, sink, burner1);
+      }
+
+      targetGroup.add(furnitureGroup);
     };
 
     // Segmented Wall Builder (Creates door and window openings in walls)

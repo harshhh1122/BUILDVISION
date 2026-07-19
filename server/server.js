@@ -413,7 +413,11 @@ You MUST adhere to these strict architectural rules to ensure the blueprints are
 6. WINDOW PLACEMENT:
 - Windows must be placed ONLY on exterior walls (facing outside the buildable envelope, e.g., the front yard, back yard, or side yards) to allow ventilation and light. Never place windows on internal partition walls!
 
-7. SCHEMA CONTROL:
+7. FURNITURE PLACEMENT RULES:
+- Place furniture logically inside the rooms (e.g. beds in bedrooms, sofas/dining tables in living/dining areas, toilets/sinks in bathrooms, counters/burners in kitchen).
+- Ensure furniture coordinates fit inside their respective room boundaries.
+
+8. SCHEMA CONTROL:
 Output a single, raw JSON object matching this schema. No markdown formatting:
 {
   "options": [
@@ -439,6 +443,9 @@ Output a single, raw JSON object matching this schema. No markdown formatting:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
+        ],
+        "furniture": [
+          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     },
@@ -464,6 +471,9 @@ Output a single, raw JSON object matching this schema. No markdown formatting:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
+        ],
+        "furniture": [
+          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     },
@@ -489,6 +499,9 @@ Output a single, raw JSON object matching this schema. No markdown formatting:
         ],
         "windows": [
           { "x": number, "y": number, "size": number, "isVertical": boolean, "floor": number }
+        ],
+        "furniture": [
+          { "type": "bed"|"sofa"|"dining"|"toilet"|"sink"|"kitchen", "x": number, "y": number, "w": number, "h": number, "rotation": number, "floor": number }
         ]
       }
     }
