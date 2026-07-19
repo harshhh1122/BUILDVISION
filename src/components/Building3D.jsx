@@ -481,74 +481,110 @@ export default function Building3D({
 
       } else {
         if (layoutOption === 'A') {
+          const splitY = houseLength * 0.45;
+          const livingH = houseLength - splitY;
+          
           if (f === 0) {
-            const splitY = hOffset + floorHeight/2;
-            const splitZ = oz;
-            const divH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, splitY, splitZ);
-            floorGroup.add(divH);
+            // Ground Floor walls
+            const wallH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY);
+            const wallV = createBox(wallThick, floorHeight, splitY, partitionMat, ox - houseWidth/2 + houseWidth * 0.65, hOffset + floorHeight/2, oz - houseLength/2 + splitY/2);
+            const wallBath = createBox(houseWidth * 0.35, floorHeight, wallThick, partitionMat, ox - houseWidth/2 + houseWidth * 0.825, hOffset + floorHeight/2, oz - houseLength/2 + splitY * 0.6);
+            floorGroup.add(wallH, wallV, wallBath);
 
-            const masterFloor = createBox(houseWidth*0.65, 0.02, houseLength*0.45, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.17, hOffset+0.05, oz - houseLength*0.22);
+            if (floors > 1) {
+              const stairV = createBox(wallThick, floorHeight, 6 * sc, partitionMat, ox + houseWidth/2 - 6 * sc, hOffset + floorHeight/2, oz - houseLength/2 + splitY + 3 * sc);
+              const stairH = createBox(6 * sc, floorHeight, wallThick, partitionMat, ox + houseWidth/2 - 3 * sc, hOffset + floorHeight/2, oz - houseLength/2 + splitY + 6 * sc);
+              floorGroup.add(stairV, stairH);
+            }
+
+            const masterFloor = createBox(houseWidth*0.65, 0.02, splitY, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.175, hOffset+0.05, oz - houseLength/2 + splitY/2);
             masterFloor.userData = { roomName: 'Master Suite', area: `${Math.round(plotWidth*plotLength*0.2)} sq ft`, cost: '₹3.6 Lakhs' };
-            floorGroup.add(masterFloor);
-            roomMeshes.current.push(masterFloor);
+            
+            const loungeFloor = createBox(houseWidth, 0.02, livingH, new THREE.MeshBasicMaterial({ visible: false }), ox, hOffset+0.05, oz - houseLength/2 + splitY + livingH/2);
+            loungeFloor.userData = { roomName: 'Open Lounge & Kitchen', area: `${Math.round(plotWidth*plotLength*0.35)} sq ft`, cost: '₹5.5 Lakhs' };
+            
+            floorGroup.add(masterFloor, loungeFloor);
+            roomMeshes.current.push(masterFloor, loungeFloor);
+          } else {
+            // First Floor Layout A
+            const splitY1 = houseLength * 0.5;
+            const balconyH = 5 * sc;
+            
+            const wallH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY1);
+            const wallV = createBox(wallThick, floorHeight, splitY1, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY1/2);
+            const wallKids = createBox(wallThick, floorHeight, houseLength - splitY1 - balconyH, partitionMat, ox - houseWidth/2 + houseWidth * 0.6, hOffset + floorHeight/2, oz - houseLength/2 + splitY1 + (houseLength - splitY1 - balconyH)/2);
+            const wallBalc = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, oz + houseLength/2 - balconyH);
+            
+            floorGroup.add(wallH, wallV, wallKids, wallBalc);
 
-            // Place 3D bed in master suite
-            addFurniture3D(floorGroup, 'bed', ox - houseWidth*0.17, hOffset, oz - houseLength*0.28, 0, 1.8, 1.8);
+            const guestFloor = createBox(houseWidth*0.5, 0.02, splitY1, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.25, hOffset+0.05, oz - houseLength/2 + splitY1/2);
+            guestFloor.userData = { roomName: 'Luxe Guest Room', area: `${Math.round(plotWidth*plotLength*0.18)} sq ft`, cost: '₹2.9 Lakhs' };
+            
+            const loungeFloor = createBox(houseWidth*0.5, 0.02, splitY1, new THREE.MeshBasicMaterial({ visible: false }), ox + houseWidth*0.25, hOffset+0.05, oz - houseLength/2 + splitY1/2);
+            loungeFloor.userData = { roomName: 'Lounge/Gym', area: `${Math.round(plotWidth*plotLength*0.18)} sq ft`, cost: '₹2.5 Lakhs' };
 
-            const openLoungeFloor = createBox(houseWidth, 0.02, houseLength*0.5, new THREE.MeshBasicMaterial({ visible: false }), ox, hOffset+0.05, oz + houseLength*0.25);
-            openLoungeFloor.userData = { roomName: 'Open Lounge & Kitchen', area: `${Math.round(plotWidth*plotLength*0.35)} sq ft`, cost: '₹5.5 Lakhs' };
-            floorGroup.add(openLoungeFloor);
-            roomMeshes.current.push(openLoungeFloor);
-
-            // Place sofa, dining and kitchen in lounge
-            addFurniture3D(floorGroup, 'sofa', ox - houseWidth*0.18, hOffset, oz + houseLength*0.22, 0, 2.2, 1.8);
-            addFurniture3D(floorGroup, 'dining', ox + houseWidth*0.15, hOffset, oz + houseLength*0.32, 0, 1.4, 2.0);
-            addFurniture3D(floorGroup, 'kitchen', ox + houseWidth*0.38, hOffset, oz + houseLength*0.08, Math.PI / 2, 2.2, 0.6);
+            floorGroup.add(guestFloor, loungeFloor);
+            roomMeshes.current.push(guestFloor, loungeFloor);
           }
         } else if (layoutOption === 'B') {
-          if (f === 0) {
-            const splitX = ox;
-            const splitZ = oz;
-            const divV = createBox(wallThick, floorHeight, houseLength * 0.5, partitionMat, splitX, hOffset + floorHeight/2, oz - houseLength * 0.25);
-            const divH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, splitZ);
-            floorGroup.add(divV, divH);
+          const splitX = houseWidth * 0.5;
+          const splitY = houseLength * 0.45;
+          const livingH = houseLength - splitY;
 
-            const bedFloor = createBox(houseWidth*0.5, 0.02, houseLength*0.5, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.25, hOffset+0.05, oz - houseLength*0.25);
+          if (f === 0) {
+            const wallH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY);
+            const wallV = createBox(wallThick, floorHeight, splitY, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY/2);
+            const wallBath = createBox(wallThick, floorHeight, splitY * 0.6, partitionMat, ox - houseWidth/2 + splitX + houseWidth * 0.25, hOffset + floorHeight/2, oz - houseLength/2 + splitY * 0.3);
+            const wallStudy = createBox(houseWidth * 0.5, floorHeight, wallThick, partitionMat, ox + houseWidth * 0.25, hOffset + floorHeight/2, oz - houseLength/2 + splitY * 0.6);
+            const wallKitchen = createBox(wallThick, floorHeight, livingH, partitionMat, ox - houseWidth/2 + houseWidth * 0.55, hOffset + floorHeight/2, oz - houseLength/2 + splitY + livingH/2);
+            
+            floorGroup.add(wallH, wallV, wallBath, wallStudy, wallKitchen);
+
+            const bedFloor = createBox(splitX, 0.02, splitY, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.25, hOffset+0.05, oz - houseLength/2 + splitY/2);
             bedFloor.userData = { roomName: 'Bedroom 1 (Compact)', area: `${Math.round(plotWidth*plotLength*0.18)} sq ft`, cost: '₹2.1 Lakhs' };
+            
+            const livingFloor = createBox(houseWidth * 0.55, 0.02, livingH, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth * 0.225, hOffset+0.05, oz - houseLength/2 + splitY + livingH/2);
+            livingFloor.userData = { roomName: 'Compact Living', area: `${Math.round(plotWidth*plotLength*0.22)} sq ft`, cost: '₹3.2 Lakhs' };
+            
+            floorGroup.add(bedFloor, livingFloor);
+            roomMeshes.current.push(bedFloor, livingFloor);
+          } else {
+            const wallH = createBox(houseWidth, floorHeight, wallThick, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY);
+            const wallV = createBox(wallThick, floorHeight, splitY, partitionMat, ox, hOffset + floorHeight/2, oz - houseLength/2 + splitY/2);
+            const wallBath = createBox(wallThick, floorHeight, splitY * 0.6, partitionMat, ox - houseWidth/2 + splitX + houseWidth * 0.25, hOffset + floorHeight/2, oz - houseLength/2 + splitY * 0.3);
+            const wallStudy = createBox(houseWidth * 0.5, floorHeight, wallThick, partitionMat, ox + houseWidth * 0.25, hOffset + floorHeight/2, oz - houseLength/2 + splitY * 0.6);
+            const wallKitchen = createBox(wallThick, floorHeight, livingH, partitionMat, ox - houseWidth/2 + houseWidth * 0.55, hOffset + floorHeight/2, oz - houseLength/2 + splitY + livingH/2);
+            
+            floorGroup.add(wallH, wallV, wallBath, wallStudy, wallKitchen);
+
+            const bedFloor = createBox(splitX, 0.02, splitY, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.25, hOffset+0.05, oz - houseLength/2 + splitY/2);
+            bedFloor.userData = { roomName: 'Bedroom 2', area: `${Math.round(plotWidth*plotLength*0.18)} sq ft`, cost: '₹2.1 Lakhs' };
+            
             floorGroup.add(bedFloor);
             roomMeshes.current.push(bedFloor);
-
-            // Bed in bed 1
-            addFurniture3D(floorGroup, 'bed', ox - houseWidth*0.25, hOffset, oz - houseLength*0.32, 0, 1.6, 1.6);
-
-            const compactLiving = createBox(houseWidth*0.55, 0.02, houseLength*0.5, new THREE.MeshBasicMaterial({ visible: false }), ox - houseWidth*0.22, hOffset+0.05, oz + houseLength*0.25);
-            floorGroup.add(compactLiving);
-
-            // Sofa and Kitchenette in Layout B
-            addFurniture3D(floorGroup, 'sofa', ox - houseWidth*0.25, hOffset, oz + houseLength*0.2, 0, 1.8, 1.5);
-            addFurniture3D(floorGroup, 'kitchen', ox + houseWidth*0.28, hOffset, oz + houseLength*0.25, Math.PI/2, 2.0, 0.6);
           }
         } else {
+          const splitX = houseWidth * 0.45;
+          const splitY = houseLength * 0.45;
+          const courtW = houseWidth * 0.22;
+          const courtH = houseLength * 0.18;
+          const courtX = (houseWidth - courtW) / 2;
+          const courtY = (houseLength - courtH) / 2;
+
           if (f === 0) {
-            const courtW = houseWidth * 0.22;
-            const courtH = houseLength * 0.18;
-            const divNW = createBox(houseWidth * 0.45, floorHeight, wallThick, partitionMat, ox - houseWidth*0.275, hOffset + floorHeight/2, oz - courtH);
-            const divSE = createBox(wallThick, floorHeight, houseLength * 0.4, partitionMat, ox + courtW/2, hOffset + floorHeight/2, oz + houseLength * 0.3);
+            const divNW = createBox(houseWidth * 0.45, floorHeight, wallThick, partitionMat, ox - houseWidth * 0.275, hOffset + floorHeight/2, oz - houseLength/2 + courtY);
+            const divSE = createBox(wallThick, floorHeight, houseLength * 0.4, partitionMat, ox - houseWidth/2 + courtX + courtW, hOffset + floorHeight/2, oz - houseLength/2 + courtY + courtH + (houseLength - courtY - courtH)/2);
             floorGroup.add(divNW, divSE);
 
-            const courtFloor = createBox(courtW, 0.02, courtH, new THREE.MeshBasicMaterial({ visible: false }), ox, hOffset+0.05, oz);
+            const courtFloor = createBox(courtW, 0.02, courtH, new THREE.MeshBasicMaterial({ visible: false }), ox, hOffset+0.05, oz - houseLength/2 + courtY + courtH/2);
             courtFloor.userData = { roomName: 'Vastu Air Courtyard 🍃', area: `${Math.round(plotWidth*plotLength*0.05)} sq ft`, cost: '₹0.8 Lakhs' };
+            
             floorGroup.add(courtFloor);
             roomMeshes.current.push(courtFloor);
-
-            // Bed in NW Guest Bed
-            addFurniture3D(floorGroup, 'bed', ox - houseWidth*0.25, hOffset, oz - houseLength*0.28, 0, 1.6, 1.6);
-            // Living Sofa
-            addFurniture3D(floorGroup, 'sofa', ox - houseWidth*0.25, hOffset, oz + houseLength*0.25, 0, 1.6, 1.5);
-            // Dining Table
-            addFurniture3D(floorGroup, 'dining', ox + houseWidth*0.25, hOffset, oz + houseLength*0.12, 0, 1.2, 1.6);
-            // Kitchen Counter
-            addFurniture3D(floorGroup, 'kitchen', ox + houseWidth*0.25, hOffset, oz + houseLength*0.35, Math.PI/2, 1.8, 0.6);
+          } else {
+            const divNW = createBox(houseWidth * 0.45, floorHeight, wallThick, partitionMat, ox - houseWidth * 0.275, hOffset + floorHeight/2, oz - houseLength/2 + courtY);
+            const divSE = createBox(wallThick, floorHeight, houseLength * 0.4, partitionMat, ox - houseWidth/2 + courtX + courtW, hOffset + floorHeight/2, oz - houseLength/2 + courtY + courtH + (houseLength - courtY - courtH)/2);
+            floorGroup.add(divNW, divSE);
           }
         }
       }
